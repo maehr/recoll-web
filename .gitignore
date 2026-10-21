@@ -1,0 +1,14 @@
+# Python and tool caches
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+dist/
+build/
+
+# macOS
+.DS_Store

@@ -1,0 +1,141 @@
+[project]
+name = "recoll-web"
+version = "0.0.0"
+description = "A small web interface for Recoll full-text search, built with FastAPI, Jinja2, and htmx"
+readme = "README.md"
+license = "AGPL-3.0-only"
+license-files = ["LICENSE", "src/recoll_web/static/htmx.LICENSE"]
+authors = [{ name = "Moritz Mähr", email = "14755525+maehr@users.noreply.github.com" }]
+requires-python = ">=3.11"
+keywords = ["recoll", "xapian", "full-text search", "fastapi", "htmx", "recoll-webui"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Web Environment",
+    "Framework :: FastAPI",
+    "Intended Audience :: End Users/Desktop",
+    "Operating System :: MacOS",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3 :: Only",
+    "Topic :: Text Processing :: Indexing",
+    "Typing :: Typed",
+]
+# The Recoll Python module is not on PyPI. It comes with Recoll: see README.md.
+dependencies = [
+    "fastapi>=0.156.4",
+    "jinja2>=3.1.6",
+    "markupsafe>=3.0.4",
+    "pydantic-settings>=2.16.1",
+    "typer>=0.27.3",
+    "uvicorn>=0.54.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/maehr/recoll-web"
+Issues = "https://github.com/maehr/recoll-web/issues"
+Changelog = "https://github.com/maehr/recoll-web/blob/main/CHANGELOG.md"
+
+[project.scripts]
+recoll-web = "recoll_web.cli:main"
+
+[dependency-groups]
+dev = [
+    "commitizen>=4.19.2",
+    "git-cliff>=2.14.2",
+    "httpx2>=2.16.0",
+    "prek>=0.5.7",
+    "pytest>=9.1.1",
+    "pytest-cov>=7.1.0",
+    "ruff>=0.17.1",
+    # ty is in beta: pin it exactly.
+    "ty==0.0.90",
+]
+
+[build-system]
+requires = ["uv_build>=0.13.4,<0.14.0"]
+build-backend = "uv_build"
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM", "RUF", "D", "ANN", "S", "PT", "PL", "C4", "ARG", "FBT", "BLE", "N"]
+ignore = [
+    "D105", # magic methods document themselves
+    "D107", # __init__ is documented on the class
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.isort]
+known-local-folder = ["conftest"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101", "D", "ANN", "PLR2004", "ARG", "N802", "FBT"]
+# Typer maps each option to a parameter, and a flag to a boolean parameter.
+"src/recoll_web/cli.py" = ["PLR0913", "PLR0917", "FBT001", "FBT002"]
+
+[tool.ty.environment]
+python-version = "3.11"
+
+[tool.pytest.ini_options]
+testpaths = ["src", "tests"]
+addopts = ["--doctest-modules", "--strict-markers", "-m", "not recoll"]
+markers = ["recoll: needs the native Recoll module and recollindex (opt-in: pytest -m recoll)"]
+
+[tool.coverage.run]
+source = ["recoll_web"]
+branch = true
+
+[tool.coverage.report]
+fail_under = 100
+show_missing = true
+skip_covered = true
+exclude_also = ["\\.\\.\\.$"]
+
+[tool.commitizen]
+name = "cz_conventional_commits"
+version_provider = "uv"
+tag_format = "v$version"
+major_version_zero = true
+update_changelog_on_bump = false
+gpg_sign = true
+# git-cliff writes the changelog. The hook stages it, so it lands in the bump commit.
+pre_bump_hooks = [
+    "uv run --no-sync git-cliff --tag v$CZ_PRE_NEW_VERSION --output CHANGELOG.md",
+    "git add CHANGELOG.md",
+]
+
+[tool.git-cliff.changelog]
+header = "# Changelog\n\nAll notable changes to recoll-web. The format follows [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/), and the versions follow [SemVer](https://semver.org/).\n"
+body = """
+{% if version %}\
+## [{{ version | trim_start_matches(pat="v") }}] - {{ timestamp | date(format="%Y-%m-%d") }}
+{% else %}\
+## [Unreleased]
+{% endif %}\
+{% for group, commits in commits | group_by(attribute="group") %}
+### {{ group | striptags | trim | upper_first }}
+{% for commit in commits %}
+- {% if commit.scope %}**{{ commit.scope }}:** {% endif %}{% if commit.breaking %}[**breaking**] {% endif %}{{ commit.message | upper_first }}\
+{% endfor %}
+{% endfor %}\n
+"""
+trim = true
+
+[tool.git-cliff.git]
+conventional_commits = true
+filter_unconventional = true
+protect_breaking_commits = true
+commit_parsers = [
+    { message = "^feat", group = "<!-- 0 -->Features" },
+    { message = "^fix", group = "<!-- 1 -->Bug fixes" },
+    { message = "^perf", group = "<!-- 2 -->Performance" },
+    { message = "^refactor", group = "<!-- 3 -->Refactoring" },
+    { message = "^docs", group = "<!-- 4 -->Documentation" },
+    { message = "^test", group = "<!-- 5 -->Tests" },
+    { message = "^chore\\(release\\)", skip = true },
+    { message = "^(build|ci|chore|style)", group = "<!-- 6 -->Maintenance" },
+]
+tag_pattern = "v[0-9].*"
+sort_commits = "oldest"

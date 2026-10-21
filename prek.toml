@@ -1,0 +1,28 @@
+# Git hooks for recoll-web: the quality gate of AGENTS.md, and a Conventional Commits check.
+# Install the hooks once: uv run prek install
+#:schema https://www.schemastore.org/prek.json
+
+default_install_hook_types = ["pre-commit", "commit-msg"]
+# Vendored and generated files keep their upstream form.
+exclude = "^(LICENSE|CHANGELOG\\.md|src/recoll_web/static/htmx\\.(min\\.js|LICENSE))$"
+
+[[repos]]
+repo = "builtin"
+hooks = [
+    { id = "trailing-whitespace" },
+    { id = "end-of-file-fixer" },
+    { id = "check-added-large-files" },
+    { id = "check-toml" },
+    { id = "check-yaml" },
+]
+
+# The local hooks run the tools from uv.lock, so the hooks and CI use the same versions.
+[[repos]]
+repo = "local"
+hooks = [
+    { id = "ruff-check", name = "ruff check", entry = "uv run --no-sync ruff check", language = "system", types = ["python"] },
+    { id = "ruff-format", name = "ruff format", entry = "uv run --no-sync ruff format --check", language = "system", types = ["python"] },
+    { id = "ty", name = "ty check", entry = "uv run --no-sync ty check", language = "system", types = ["python"], pass_filenames = false },
+    { id = "pytest", name = "pytest", entry = "uv run --no-sync pytest --cov --cov-fail-under=100 -q", language = "system", types_or = ["python", "html", "css", "javascript", "toml"], pass_filenames = false },
+    { id = "cz-check", name = "cz check", entry = "uv run --no-sync cz check --allow-abort --commit-msg-file", language = "system", stages = ["commit-msg"] },
+]
