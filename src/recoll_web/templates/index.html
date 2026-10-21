@@ -1,0 +1,66 @@
+{#- SPDX-License-Identifier: AGPL-3.0-only -#}
+{%- set category_labels = {"all": "All types", "text": "Text", "spreadsheet": "Spreadsheets",
+  "presentation": "Presentations", "media": "Media", "message": "Messages", "other": "Other"} -%}
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    {#- No injected indicator style (the CSP blocks it), and swap error replies so their notice shows. #}
+    <meta name="htmx-config" content='{"includeIndicatorStyles": false, "responseHandling": [{"code": "204", "swap": false}, {"code": "...", "swap": true}]}'>
+    <title>{% if search.q %}{{ search.q }} · {% endif %}Recoll Web</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <script defer src="/static/htmx.min.js"></script>
+    <script defer src="/static/app.js"></script>
+  </head>
+  <body>
+    <main class="shell">
+      <header class="brand"><span class="brand-mark">R</span><span>Recoll <span class="brand-muted">Web</span></span></header>
+      <form id="search-form" class="search-form" method="get" action="/"
+            hx-get="/" hx-target="#results" hx-swap="innerHTML" hx-push-url="true"
+            hx-trigger="submit, input changed delay:350ms from:#query, change from:select, change from:input[type=date]">
+        <div class="search-field">
+          <svg aria-hidden="true" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+          <input id="query" name="q" type="search" value="{{ search.q }}" placeholder="Search your files, or type a Recoll query" autofocus autocomplete="off" maxlength="500" aria-label="Search your files">
+          <kbd>/</kbd>
+        </div>
+        <div class="controls">
+          <label>Type
+            <select name="category">
+              {%- for category in categories %}
+              <option value="{{ category }}" {% if search.category == category %}selected{% endif %}>{{ category_labels[category] }}</option>
+              {%- endfor %}
+            </select>
+          </label>
+          {%- if settings.dirs %}
+          <label>Folder
+            <select name="dir">
+              <option value="">All folders</option>
+              {%- for folder in settings.dirs %}
+              <option value="{{ folder }}" {% if search.dir == folder %}selected{% endif %}>{{ folder }}</option>
+              {%- endfor %}
+            </select>
+          </label>
+          {%- endif %}
+          <label>After <input type="date" name="after" value="{{ search.after or '' }}"></label>
+          <label>Before <input type="date" name="before" value="{{ search.before or '' }}"></label>
+          <label>Sort
+            <select name="sort">
+              <option value="relevance" {% if search.sort == 'relevance' %}selected{% endif %}>Relevance</option>
+              <option value="newest" {% if search.sort == 'newest' %}selected{% endif %}>Newest first</option>
+              <option value="oldest" {% if search.sort == 'oldest' %}selected{% endif %}>Oldest first</option>
+            </select>
+          </label>
+          <button type="submit">Search</button>
+        </div>
+      </form>
+      <div id="preview" aria-live="polite">{% if preview or preview_error %}{% include "_preview.html" %}{% endif %}</div>
+      <div id="results" aria-live="polite">{% include "_results.html" %}</div>
+      <footer class="footer">
+        recoll-web {{ version }} · <a href="{{ settings.source_url }}">Source code</a> (AGPL-3.0) ·
+        <a href="https://www.recoll.org/usermanual/webhelp/docs/RCL.SEARCH.LANG.html">Query language</a>
+      </footer>
+    </main>
+  </body>
+</html>

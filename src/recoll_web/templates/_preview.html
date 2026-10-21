@@ -1,0 +1,10 @@
+{#- SPDX-License-Identifier: AGPL-3.0-only -#}
+{% if preview_error %}
+<div class="notice notice-error" role="alert"><strong>No preview</strong><p>{{ preview_error }}</p></div>
+{% else %}
+<section class="preview-card" aria-label="Document text preview">
+  <header class="preview-heading"><h2>{{ preview.title }}</h2><button type="button" data-close-preview aria-label="Close preview">✕</button></header>
+  {% if preview.text %}<pre>{{ preview.text | marks }}</pre>{% else %}<p>Recoll has no text for this document.</p>{% endif %}
+  {% if preview.truncated %}<p class="subdued">The preview shows the start of the text only.</p>{% endif %}
+</section>
+{% endif %}
