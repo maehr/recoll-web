@@ -1,30 +1,34 @@
 {#- SPDX-License-Identifier: AGPL-3.0-only -#}
+{#- `data-status` is the sentence that app.js puts in the status region after a swap. -#}
 {% if error %}
-  <div class="notice notice-error" role="alert"><strong>Recoll unavailable</strong><p>{{ error }}</p></div>
+  <div class="notice notice-error" role="alert"><h2>Recoll unavailable</h2><p>{{ error }}</p></div>
 {% elif not search.q.strip() %}
-  <div class="empty"><span class="empty-icon">⌕</span><h2>Ready to search</h2><p>Type a term or a Recoll query. Try <code>title:report</code> or <code>ext:pdf</code>.</p></div>
+  <div class="empty"><span class="empty-icon" aria-hidden="true">⌕</span><h2>Ready to search</h2><p>Type a term or a Recoll query. Try <code>title:report</code> or <code>ext:pdf</code>.</p></div>
 {% elif page.total == 0 %}
-  <div class="empty"><h2>No matches found</h2><p>Try a broader query or remove a filter.</p></div>
+  <div class="empty" data-status="No matches found."><h2>No matches found</h2><p>Try a broader query or remove a filter.</p></div>
 {% else %}
-  <div class="result-summary"><strong>{{ "{:,}".format(page.total) }}</strong> matching documents <span>· page {{ page.page }} of {{ page.pages }}</span></div>
+  {%- set total = "{:,}".format(page.total) %}
+  <h2 class="result-summary" data-status="{{ total }} matching documents, page {{ page.page }} of {{ page.pages }}." tabindex="-1">
+    <strong>{{ total }}</strong> matching documents <span>· page {{ page.page }} of {{ page.pages }}</span>
+  </h2>
   <ul class="result-list">
   {%- for hit in page.hits %}
     <li class="result">
-      <div class="result-heading"><strong>{{ hit.title }}</strong><span class="filetype">{{ hit.mime or "unknown type" }}</span></div>
-      <div class="result-path" title="{{ hit.path }}">{{ hit.path }}</div>
+      <div class="result-heading"><h3>{{ hit.title }}</h3><span class="filetype"><span class="visually-hidden">Type: </span>{{ hit.mime or "unknown type" }}</span></div>
+      <div class="result-path"><span class="visually-hidden">Path: </span>{{ hit.path }}</div>
       {% if hit.snippet %}<p class="snippet">{{ hit.snippet | marks }}</p>{% endif %}
       <div class="result-footer">
-        {% if hit.modified %}<span>{{ hit.modified }}</span>{% endif %}
+        {% if hit.modified %}<span><span class="visually-hidden">Modified: </span>{{ hit.modified }}</span>{% endif %}
         {%- set preview_url = "/preview/" ~ hit.id ~ "?" ~ {"q": search.q} | urlencode %}
-        <a class="text-button" href="{{ preview_url }}" hx-get="{{ preview_url }}" hx-target="#preview" hx-swap="innerHTML">Preview text</a>
-        {% if settings.allow_download %}<a class="text-button" href="/download/{{ hit.id }}">Download</a>{% endif %}
+        <a class="text-button" href="{{ preview_url }}" hx-get="{{ preview_url }}" hx-target="#preview" hx-swap="innerHTML">Preview text<span class="visually-hidden"> of {{ hit.title }}</span></a>
+        {% if settings.allow_download %}<a class="text-button" href="/download/{{ hit.id }}">Download<span class="visually-hidden"> {{ hit.title }}</span></a>{% endif %}
       </div>
     </li>
   {%- endfor %}
   </ul>
   <nav class="pagination" aria-label="Result pages">
-    {% if previous_url %}<a href="{{ previous_url }}" hx-get="{{ previous_url }}" hx-target="#results" hx-push-url="true">← Previous</a>{% else %}<span></span>{% endif %}
-    <span>{{ page.page }} / {{ page.pages }}</span>
-    {% if next_url %}<a href="{{ next_url }}" hx-get="{{ next_url }}" hx-target="#results" hx-push-url="true">Next →</a>{% else %}<span></span>{% endif %}
+    {% if previous_url %}<a href="{{ previous_url }}" hx-get="{{ previous_url }}" hx-target="#results" hx-push-url="true" data-page-link><span aria-hidden="true">← </span>Previous page</a>{% else %}<span></span>{% endif %}
+    <span>Page {{ page.page }} of {{ page.pages }}</span>
+    {% if next_url %}<a href="{{ next_url }}" hx-get="{{ next_url }}" hx-target="#results" hx-push-url="true" data-page-link>Next page<span aria-hidden="true"> →</span></a>{% else %}<span></span>{% endif %}
   </nav>
 {% endif %}
