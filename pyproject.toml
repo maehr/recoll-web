@@ -107,7 +107,7 @@ pre_bump_hooks = [
 ]
 
 [tool.git-cliff.changelog]
-header = "# Changelog\n\nAll notable changes to recoll-web. The format follows [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/), and the versions follow [SemVer](https://semver.org/).\n"
+header = "# Changelog\n\nAll notable changes to recoll-web. The format follows [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/), and the versions follow [SemVer](https://semver.org/).\n\n"
 body = """
 {% if version %}\
 ## [{{ version | trim_start_matches(pat="v") }}] - {{ timestamp | date(format="%Y-%m-%d") }}
