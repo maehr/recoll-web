@@ -1,0 +1,149 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: AGPL-3.0-only -->
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <title>Recoll Web · Mock preview</title>
+    <style>
+      /* The palette and the layout follow src/recoll_web/static/styles.css. */
+      :root {
+        --bg:#f5f7f9; --panel:#fff; --text:#1f2d3a; --muted:#4a5a6a; --line:#d5dde5; --border:#6f8090;
+        --accent:#14606b; --brand:#ba3925; --mark:#ffe680; --mark-text:#1f2d3a; --focus:#14606b;
+        --shadow:0 12px 32px rgba(31,45,58,.06);
+        --font:"Noto Sans","Open Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+        --mono:"Noto Sans Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg:#11181f; --panel:#1a242e; --text:#e8eef3; --muted:#b0bdc9; --line:#33424f; --border:#7d8fa0;
+          --accent:#6fd0dc; --brand:#ff8a75; --mark:#5c4a00; --mark-text:#fff6d6; --focus:#6fd0dc; --shadow:none;
+        }
+        .brand-mark { color:#11181f; }
+      }
+      * { box-sizing:border-box; }
+      body { margin:0; background:var(--bg); color:var(--text); font:1rem/1.6 var(--font); }
+      a { color:var(--accent); text-decoration:underline; text-decoration-thickness:1px; text-underline-offset:.2em; }
+      :focus-visible { outline:3px solid var(--focus); outline-offset:2px; }
+      .shell { width:min(920px, calc(100% - 32px)); margin:32px auto 48px; }
+      .banner { margin:0 0 20px; padding:10px 16px; border:1px dashed var(--border); border-radius:8px; color:var(--muted); font-size:.9375rem; }
+      .brand { display:flex; gap:10px; align-items:center; margin:0 0 20px; }
+      .brand h1 { margin:0; font-size:1.25rem; font-weight:700; letter-spacing:-.01em; }
+      .visually-hidden { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
+      .brand-mark { background:var(--brand); color:#fff; width:34px; height:34px; border-radius:8px; display:grid; place-items:center; font-size:1.2rem; }
+      .brand-muted { color:var(--brand); font-weight:400; }
+      .search-form { background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:16px; box-shadow:var(--shadow); }
+      .search-field { display:flex; gap:12px; align-items:center; border:1px solid var(--border); border-radius:10px; padding:0 14px; min-height:56px; }
+      .search-field input { background:transparent; border:0; outline:0; width:100%; min-height:44px; color:var(--text); font:inherit; font-size:1.1rem; }
+      .search-field kbd { color:var(--muted); border:1px solid var(--border); border-radius:6px; font:inherit; font-size:.8125rem; padding:1px 7px; white-space:nowrap; }
+      .hint { margin:8px 2px 0; font-size:.875rem; color:var(--muted); }
+      .controls { display:flex; align-items:end; gap:14px; margin-top:14px; flex-wrap:wrap; }
+      .field { display:grid; gap:4px; }
+      .field span { font-size:.875rem; font-weight:600; }
+      .field div { min-width:130px; min-height:44px; padding:8px 10px; border:1px solid var(--border); border-radius:8px; background:var(--panel); font-size:.9375rem; }
+      .button { margin-left:auto; min-height:44px; border:2px solid var(--text); border-radius:8px; background:var(--text); color:var(--panel); padding:8px 22px; font-size:.9375rem; font-weight:700; display:grid; place-items:center; }
+      .result-summary { margin:24px 4px 10px; font-size:.9375rem; color:var(--muted); }
+      .result-summary strong { color:var(--text); }
+      .result-list { padding:0; margin:0; list-style:none; background:var(--panel); border:1px solid var(--line); border-radius:12px; overflow:hidden; box-shadow:var(--shadow); }
+      .result { padding:18px 22px; border-bottom:1px solid var(--line); }
+      .result:last-child { border-bottom:0; }
+      .result-heading { display:flex; justify-content:space-between; gap:12px; align-items:baseline; }
+      .result-heading h3 { margin:0; font-size:1.0625rem; line-height:1.4; }
+      .filetype { white-space:nowrap; color:var(--muted); font-size:.8125rem; background:var(--bg); border:1px solid var(--line); border-radius:6px; padding:1px 8px; }
+      .result-path { color:var(--muted); margin-top:4px; font-size:.875rem; overflow-wrap:anywhere; }
+      .snippet { margin:10px 0; font-size:.9375rem; line-height:1.65; }
+      mark { background:var(--mark); color:var(--mark-text); border-radius:3px; padding:0 2px; font-weight:600; }
+      .result-footer { color:var(--muted); font-size:.875rem; display:flex; flex-wrap:wrap; gap:6px 20px; align-items:center; }
+      .text-button { font-weight:600; }
+      .pagination { display:flex; justify-content:space-between; align-items:center; gap:20px; padding:20px 4px; color:var(--muted); font-size:.9375rem; }
+      .preview-card { margin-top:24px; padding:22px; background:var(--panel); border:1px solid var(--line); border-radius:12px; box-shadow:var(--shadow); }
+      .preview-heading { display:flex; justify-content:space-between; align-items:start; gap:12px; }
+      .preview-heading h2 { margin:0 0 12px; font-size:1.25rem; overflow-wrap:anywhere; }
+      .preview-label { display:block; font-size:.8125rem; font-weight:600; text-transform:uppercase; letter-spacing:.06em; color:var(--brand); }
+      .close-button { flex-shrink:0; display:grid; place-items:center; width:44px; height:44px; border:1px solid var(--border); border-radius:8px; background:transparent; color:var(--text); }
+      .preview-card pre { font:.875rem/1.7 var(--mono); padding:16px; background:var(--bg); border:1px solid var(--line); border-radius:8px; white-space:pre-wrap; margin:0; }
+      .footer { color:var(--muted); font-size:.875rem; margin-top:32px; text-align:center; }
+      @media (max-width:560px) {
+        .shell { margin-top:20px; }
+        .field, .field div { width:100%; }
+        .button { width:100%; }
+        .search-field kbd { display:none; }
+        .result { padding:16px; }
+        .result-heading { align-items:start; flex-direction:column; gap:6px; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <p class="banner">Mock preview. The page shows a layout with invented documents. It has no search and no server.</p>
+      <header class="brand">
+        <h1><span class="brand-mark" aria-hidden="true">R</span>Recoll <span class="brand-muted">Web</span></h1>
+      </header>
+      <main>
+        <form class="search-form" role="search" onsubmit="return false">
+          <label class="visually-hidden" for="query">Search your files</label>
+          <div class="search-field">
+            <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+            <input id="query" type="search" value="invoice 2025" readonly>
+            <kbd aria-hidden="true">Ctrl K</kbd>
+          </div>
+          <p class="hint">Results update as you type. Press Ctrl+K or ⌘K to return to this field.</p>
+          <div class="controls">
+            <div class="field"><span>Type</span><div>All types</div></div>
+            <div class="field"><span>Folder</span><div>All folders</div></div>
+            <div class="field"><span>Modified after</span><div>Any date</div></div>
+            <div class="field"><span>Modified before</span><div>Any date</div></div>
+            <div class="field"><span>Sort</span><div>Relevance</div></div>
+            <div class="button">Search</div>
+          </div>
+        </form>
+
+        <section class="preview-card" aria-labelledby="preview-title">
+          <header class="preview-heading">
+            <h2 id="preview-title"><span class="preview-label">Preview</span> Invoice 2025-03 for the print run</h2>
+            <span class="close-button" aria-hidden="true">✕</span>
+          </header>
+          <pre>Invoice 2025-03
+
+Customer:  Example Press Ltd.
+Item:      Print run, 500 copies, A5 booklet
+Amount:    1,240.00 EUR
+Due:       2025-04-14</pre>
+        </section>
+
+        <h2 class="result-summary"><strong>12</strong> matching documents <span>· page 1 of 2</span></h2>
+        <ul class="result-list">
+          <li class="result">
+            <div class="result-heading"><h3>Invoice 2025-03 for the print run</h3><span class="filetype">PDF</span></div>
+            <div class="result-path">~/Documents/finance/invoices/2025-03.pdf</div>
+            <p class="snippet">Amount due for the <mark>invoice</mark> of March <mark>2025</mark>: 1,240.00 EUR, payable within 21 days.</p>
+            <div class="result-footer"><span>Modified: 2025-03-14</span><span class="text-button">Preview text</span><span class="text-button">Download</span></div>
+          </li>
+          <li class="result">
+            <div class="result-heading"><h3>Budget plan 2025</h3><span class="filetype">Spreadsheet</span></div>
+            <div class="result-path">~/Documents/finance/budget-2025.xlsx</div>
+            <p class="snippet">Printing costs follow the supplier <mark>invoice</mark> terms. Review the totals for <mark>2025</mark>.</p>
+            <div class="result-footer"><span>Modified: 2025-01-08</span><span class="text-button">Preview text</span><span class="text-button">Download</span></div>
+          </li>
+          <li class="result">
+            <div class="result-heading"><h3>Meeting notes, first quarter</h3><span class="filetype">Text</span></div>
+            <div class="result-path">~/Notes/meetings/q1-notes.md</div>
+            <p class="snippet">Agreed to send the <mark>invoice</mark> for the spring run before the end of <mark>2025</mark>.</p>
+            <div class="result-footer"><span>Modified: 2025-02-02</span><span class="text-button">Preview text</span><span class="text-button">Download</span></div>
+          </li>
+        </ul>
+
+        <nav class="pagination" aria-label="Result pages">
+          <span></span>
+          <span>Page 1 of 2</span>
+          <span class="text-button">Next page →</span>
+        </nav>
+      </main>
+      <footer class="footer">
+        recoll-web · <a href="https://github.com/maehr/recoll-web">Source code</a> (AGPL-3.0) ·
+        <a href="https://www.recoll.org/usermanual/webhelp/docs/RCL.SEARCH.LANG.html">Query language</a>
+      </footer>
+    </div>
+  </body>
+</html>
